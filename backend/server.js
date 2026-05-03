@@ -2,6 +2,11 @@ import express from 'express';
 import mongoose from 'mongoose';
 import cors from 'cors';
 import dotenv from 'dotenv';
+import path from 'path';
+import { fileURLToPath } from 'url';
+
+const __filename = fileURLToPath(import.meta.url);
+const __dirname = path.dirname(__filename);
 
 import userRoutes from './routes/users.js';
 import medicationRoutes from './routes/medications.js';
@@ -31,10 +36,20 @@ app.use('/api/medications', auth, medicationRoutes);
 app.use('/api/symptoms', auth, symptomRoutes);
 app.use('/api/chat', auth, chatRoutes);
 
-// Basic Route
-app.get('/', (req, res) => {
-  res.send('CareBridge API is running');
-});
+// Serve frontend in production
+if (process.env.NODE_ENV === 'production') {
+  const frontendPath = path.join(__dirname, '../dist');
+  app.use(express.static(frontendPath));
+  
+  app.get('*', (req, res) => {
+    res.sendFile(path.join(frontendPath, 'index.html'));
+  });
+} else {
+  // Basic Route for development
+  app.get('/', (req, res) => {
+    res.send('CareBridge API is running');
+  });
+}
 
 // Start Server
 app.listen(PORT, () => {
