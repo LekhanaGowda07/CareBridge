@@ -88,7 +88,7 @@ router.post('/', async (req, res) => {
     console.error("AI Error Details:", error);
     
     // Smart Mock Fallback for Demo Purposes
-    if (error.message.includes('API_KEY_INVALID') || error.message.includes('not valid')) {
+    if (error.message.includes('API_KEY_INVALID') || error.message.includes('not valid') || error.message.includes('leaked') || error.message.includes('fetch failed')) {
       const userMsg = req.body.message.toLowerCase();
       let mockReply = "That's a good question. For your specific recovery, it's best to follow the discharge papers Dr. Chen gave you. Generally, focus on staying hydrated and resting. Is there anything specific you're feeling right now?";
       
