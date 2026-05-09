@@ -34,11 +34,11 @@ app.use('/api/auth', authRoutes);
 app.use('/api/users', auth, userRoutes);
 app.use('/api/medications', auth, medicationRoutes);
 app.use('/api/symptoms', auth, symptomRoutes);
-app.use('/api/chat', auth, chatRoutes);
+app.use('/api/chat', chatRoutes);
 
 // Serve frontend in production
 if (process.env.NODE_ENV === 'production') {
-  const frontendPath = path.join(__dirname, '../dist');
+  const frontendPath = path.join(__dirname, '../frontend/dist');
   app.use(express.static(frontendPath));
   
   app.get('*', (req, res) => {

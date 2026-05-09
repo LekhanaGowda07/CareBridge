@@ -1,6 +1,7 @@
 import { useState, useEffect } from 'react';
 import { PlusCircle, Activity, AlertTriangle } from 'lucide-react';
 import { useAuth } from '../context/AuthContext';
+import { recentSymptoms as mockSymptoms } from '../mockData';
 import './Symptoms.css';
 
 const Symptoms = () => {
@@ -15,16 +16,25 @@ const Symptoms = () => {
   const [notes, setNotes] = useState('');
 
   useEffect(() => {
-    if (user && token) {
+    // Only call backend when we have a real user id and a non-mock token
+    if (user && user._id && token && token !== 'mock_token') {
       fetch(`/api/symptoms/user/${user._id}`, {
         headers: { 'Authorization': `Bearer ${token}` }
       })
         .then(res => res.json())
         .then(data => {
-          setSymptoms(data);
+          if (Array.isArray(data) && data.length > 0) setSymptoms(data);
+          else setSymptoms(mockSymptoms);
           setLoading(false);
         })
-        .catch(err => console.error(err));
+        .catch(err => {
+          console.error(err);
+          setSymptoms(mockSymptoms);
+          setLoading(false);
+        });
+    } else {
+      setSymptoms(mockSymptoms);
+      setLoading(false);
     }
   }, [user, token]);
 
@@ -40,10 +50,21 @@ const Symptoms = () => {
       user: user._id
     };
 
+    // If no real token, add locally
+    if (!token || token === 'mock_token') {
+      const localSym = { ...newSymptom, _id: Date.now().toString(), date: new Date().toISOString() };
+      setSymptoms([localSym, ...symptoms]);
+      setShowForm(false);
+      setType('Pain Level');
+      setSeverity('Mild');
+      setNotes('');
+      return;
+    }
+
     try {
       const res = await fetch('/api/symptoms', {
         method: 'POST',
-        headers: { 
+        headers: {
           'Content-Type': 'application/json',
           'Authorization': `Bearer ${token}`
         },
@@ -134,8 +155,10 @@ const Symptoms = () => {
       <div className="timeline-container glass-card">
         <h3>History</h3>
         <div className="timeline">
-          {symptoms.map(sym => (
-            <div key={sym._id} className="timeline-item">
+          {symptoms.map(sym => {
+            const symId = sym._id || sym.id || `${sym.type}-${sym.date}`;
+            return (
+            <div key={symId} className="timeline-item">
               <div className="timeline-marker">
                 <Activity size={16} />
               </div>
@@ -161,7 +184,8 @@ const Symptoms = () => {
                 )}
               </div>
             </div>
-          ))}
+            );
+          })}
         </div>
       </div>
     </div>

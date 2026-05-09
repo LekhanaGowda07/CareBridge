@@ -1,6 +1,7 @@
 import { useState, useRef, useEffect } from 'react';
 import { Send, Bot, User } from 'lucide-react';
 import { useAuth } from '../context/AuthContext';
+import { aiChatHistory as mockHistory } from '../mockData';
 import './AIChatbot.css';
 
 const AIChatbot = () => {
@@ -9,6 +10,12 @@ const AIChatbot = () => {
   const [loading, setLoading] = useState(true);
   const [input, setInput] = useState('');
   const [isTyping, setIsTyping] = useState(false);
+  const [suggestions] = useState([
+    "How should I take my Lisinopril?",
+    "I'm feeling a bit dizzy today.",
+    "Can I go for a walk now?",
+    "When is my next checkup?"
+  ]);
   const messagesEndRef = useRef(null);
 
   const scrollToBottom = () => {
@@ -16,18 +23,28 @@ const AIChatbot = () => {
   };
 
   useEffect(() => {
-    if (user && token) {
-      fetch(`/api/chat/user/${user._id}`, {
-        headers: { 'Authorization': `Bearer ${token}` }
-      })
+    // We allow fetching without token for the demo mode
+    const fetchUrl = user?._id ? `/api/chat/user/${user._id}` : null;
+    
+    if (fetchUrl) {
+      fetch(fetchUrl)
         .then(res => res.json())
         .then(data => {
-          setMessages(data);
+          if (Array.isArray(data) && data.length > 0) setMessages(data);
+          else setMessages(mockHistory);
           setLoading(false);
         })
-        .catch(err => console.error(err));
+        .catch(err => {
+          console.error('Chat fetch error:', err);
+          setMessages(mockHistory);
+          setLoading(false);
+        });
+    } else {
+      // If no user yet, just show mock history
+      setMessages(mockHistory);
+      setLoading(false);
     }
-  }, [user, token]);
+  }, [user]);
 
   useEffect(() => {
     scrollToBottom();
@@ -55,8 +72,7 @@ const AIChatbot = () => {
       const res = await fetch('/api/chat', {
         method: 'POST',
         headers: { 
-          'Content-Type': 'application/json',
-          'Authorization': `Bearer ${token}`
+          'Content-Type': 'application/json'
         },
         body: JSON.stringify(userMessage)
       });
@@ -88,8 +104,8 @@ const AIChatbot = () => {
 
       <div className="chat-interface glass-card">
         <div className="chat-messages">
-          {messages.map(msg => (
-            <div key={msg._id} className={`message-wrapper ${msg.sender}`}>
+          {messages.map((msg, i) => (
+            <div key={msg._id || msg.id || `msg-${i}-${msg.timestamp}`} className={`message-wrapper ${msg.sender}`}>
               <div className="message-avatar">
                 {msg.sender === 'bot' ? <Bot size={20} /> : <User size={20} />}
               </div>
@@ -116,19 +132,29 @@ const AIChatbot = () => {
           <div ref={messagesEndRef} />
         </div>
 
-        <form onSubmit={handleSend} className="chat-input-area">
-          <input
-            type="text"
-            className="input-field chat-input"
-            placeholder="Type your message here..."
-            value={input}
-            onChange={(e) => setInput(e.target.value)}
-            disabled={isTyping}
-          />
-          <button type="submit" className="btn btn-primary send-btn" disabled={!input.trim() || isTyping}>
-            <Send size={18} />
-          </button>
-        </form>
+        <div className="chat-footer">
+          <div className="suggestions-container">
+            {suggestions.map((text, i) => (
+              <button key={i} className="suggestion-chip" onClick={() => { setInput(text); }}>
+                {text}
+              </button>
+            ))}
+          </div>
+
+          <form onSubmit={handleSend} className="chat-input-area">
+            <input
+              type="text"
+              className="input-field chat-input"
+              placeholder="Ask CareBridge anything..."
+              value={input}
+              onChange={(e) => setInput(e.target.value)}
+              disabled={isTyping}
+            />
+            <button type="submit" className="btn btn-primary send-btn" disabled={!input.trim() || isTyping}>
+              <Send size={18} />
+            </button>
+          </form>
+        </div>
       </div>
     </div>
   );

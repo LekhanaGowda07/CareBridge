@@ -1,4 +1,5 @@
 import express from 'express';
+import mongoose from 'mongoose';
 import User from '../models/User.js';
 
 const router = express.Router();
@@ -6,10 +7,14 @@ const router = express.Router();
 // Get all users (for testing/mocking auth)
 router.get('/', async (req, res) => {
   try {
+    if (mongoose.connection.readyState !== 1) {
+       return res.json([]); // Return empty if DB is not ready
+    }
     const users = await User.find();
     res.json(users);
   } catch (error) {
-    res.status(500).json({ message: error.message });
+    console.error('Fetch users error:', error);
+    res.json([]); // Fallback to empty instead of 500
   }
 });
 

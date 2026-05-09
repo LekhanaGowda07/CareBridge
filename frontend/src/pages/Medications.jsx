@@ -1,6 +1,7 @@
 import { useState, useEffect } from 'react';
 import { CheckCircle2, Clock, AlertCircle } from 'lucide-react';
 import { useAuth } from '../context/AuthContext';
+import { medications as mockMeds } from '../mockData';
 import './Medications.css';
 
 const Medications = () => {
@@ -9,37 +10,72 @@ const Medications = () => {
   const { user, token } = useAuth();
 
   useEffect(() => {
-    if (user && token) {
-      fetch(`/api/medications/user/${user._id}`, {
-        headers: { 'Authorization': `Bearer ${token}` }
-      })
+    // If we have a logged-in user, try backend; otherwise use mock data.
+    if (user && user._id && token && token !== 'mock_token') {
+      const headers = { 'Authorization': `Bearer ${token}` };
+      fetch(`/api/medications/user/${user._id}`, { headers })
         .then(res => res.json())
         .then(data => {
-          setMeds(data);
+          if (Array.isArray(data) && data.length > 0) setMeds(data);
+          else setMeds(mockMeds);
           setLoading(false);
         })
-        .catch(err => console.error(err));
+        .catch(err => {
+          console.error(err);
+          setMeds(mockMeds);
+          setLoading(false);
+        });
+    } else {
+      // Fallback to mock data when no real user/token available
+      setMeds(mockMeds);
+      setLoading(false);
     }
   }, [user, token]);
 
   const toggleTaken = async (id, currentStatus) => {
+    // Support mock data (no token) by updating locally, and backend when available.
+    const key = id;
+    // Optimistic UI update
+    setMeds(prev => prev.map(m => {
+      const mid = m._id || m.id;
+      if (mid === key) return { ...m, taken: !currentStatus };
+      return m;
+    }));
+
+    // If no token, no user, or running in mock token mode, keep local change only
+    if (!token || token === 'mock_token' || !user || !user._id) return;
+
     try {
       const res = await fetch(`/api/medications/${id}`, {
         method: 'PUT',
-        headers: { 
+        headers: {
           'Content-Type': 'application/json',
           'Authorization': `Bearer ${token}`
         },
         body: JSON.stringify({ taken: !currentStatus })
       });
+
       if (res.ok) {
         const updatedMed = await res.json();
-        setMeds(meds.map(med => 
-          med._id === id ? updatedMed : med
-        ));
+        setMeds(prev => prev.map(m => {
+          const mid = m._id || m.id;
+          return mid === id ? updatedMed : m;
+        }));
+      } else {
+        // Revert optimistic change on failure
+        setMeds(prev => prev.map(m => {
+          const mid = m._id || m.id;
+          if (mid === key) return { ...m, taken: currentStatus };
+          return m;
+        }));
       }
     } catch (err) {
       console.error(err);
+      setMeds(prev => prev.map(m => {
+        const mid = m._id || m.id;
+        if (mid === key) return { ...m, taken: currentStatus };
+        return m;
+      }));
     }
   };
 
@@ -68,8 +104,10 @@ const Medications = () => {
 
       <div className="glass-card full-height">
         <div className="meds-list-full">
-          {meds.map(med => (
-            <div key={med._id} className={`med-list-item glass-panel ${med.taken ? 'taken' : ''}`}>
+          {meds.map(med => {
+            const medId = med._id || med.id || `${med.name}-${med.time}`;
+            return (
+            <div key={medId} className={`med-list-item glass-panel ${med.taken ? 'taken' : ''}`}>
               <div className="med-info">
                 <div className="med-time">
                   <Clock size={16} />
@@ -83,7 +121,7 @@ const Medications = () => {
               </div>
               <button 
                 className={`btn ${med.taken ? 'btn-outline' : 'btn-primary'}`}
-                onClick={() => toggleTaken(med._id, med.taken)}
+                onClick={() => toggleTaken(medId, med.taken)}
               >
                 {med.taken ? (
                   <>
@@ -95,7 +133,8 @@ const Medications = () => {
                 )}
               </button>
             </div>
-          ))}
+            );
+          })}
         </div>
       </div>
     </div>

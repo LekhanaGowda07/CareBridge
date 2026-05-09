@@ -35,6 +35,24 @@ export const medications = [
     time: "09:00 PM",
     taken: false,
     type: "Cholesterol"
+  },
+  {
+    id: 4,
+    name: "Metoprolol",
+    dosage: "25mg",
+    frequency: "Twice daily",
+    time: "08:30 AM",
+    taken: true,
+    type: "Beta Blocker"
+  },
+  {
+    id: 5,
+    name: "Omega-3",
+    dosage: "1000mg",
+    frequency: "Once daily",
+    time: "01:00 PM",
+    taken: false,
+    type: "Supplement"
   }
 ];
 
@@ -63,6 +81,22 @@ export const recentSymptoms = [
     notes: "Trouble breathing while resting.",
     actionNeeded: true,
     aiResponse: "Please contact Dr. Chen immediately or visit the ER."
+  },
+  {
+    id: 4,
+    date: "2026-05-02T10:00:00",
+    type: "Dizziness",
+    severity: "Mild",
+    notes: "Felt lightheaded after standing up too fast.",
+    actionNeeded: false
+  },
+  {
+    id: 5,
+    date: "2026-05-02T18:00:00",
+    type: "Appetite",
+    severity: "Low",
+    notes: "Didn't feel like eating much for dinner.",
+    actionNeeded: false
   }
 ];
 
@@ -84,5 +118,17 @@ export const aiChatHistory = [
     sender: "bot",
     message: "I'm glad you slept better. Mild soreness is normal. Have you taken your 8:00 AM Lisinopril?",
     timestamp: "08:05 AM"
+  },
+  {
+    id: 4,
+    sender: "user",
+    message: "Yes, I just took it. I'm planning to go for a short walk later.",
+    timestamp: "08:10 AM"
+  },
+  {
+    id: 5,
+    sender: "bot",
+    message: "That sounds good, but please keep it very short and stop if you feel any dizziness. Remember, Dr. Chen advised limited activity this week.",
+    timestamp: "08:11 AM"
   }
 ];
