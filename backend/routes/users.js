@@ -40,4 +40,16 @@ router.put('/:id', async (req, res) => {
   }
 });
 
+// Update user vitals
+router.put('/:id/vitals', async (req, res) => {
+  try {
+    const { vitals } = req.body;
+    const user = await User.findByIdAndUpdate(req.params.id, { vitals }, { new: true });
+    if (!user) return res.status(404).json({ message: 'User not found' });
+    res.json(user);
+  } catch (error) {
+    res.status(500).json({ message: error.message });
+  }
+});
+
 export default router;

@@ -3,7 +3,7 @@ import jwt from 'jsonwebtoken';
 export const auth = (req, res, next) => {
   try {
     const token = req.header('Authorization')?.replace('Bearer ', '');
-    if (!token) {
+    if (!token || token === 'mock_token' || token === 'undefined' || token === 'null') {
       // Bypassing auth for easier access as requested
       req.user = { id: 'mock_user_id' };
       return next();

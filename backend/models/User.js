@@ -9,7 +9,12 @@ const userSchema = new mongoose.Schema({
   dischargeDate: { type: Date, required: true },
   doctor: { type: String, required: true },
   hospital: { type: String, required: true },
-  avatar: { type: String }
+  avatar: { type: String },
+  vitals: {
+    bp: { type: String, default: '120/80' },
+    hr: { type: String, default: '72' },
+    weight: { type: String, default: '165' }
+  }
 }, { timestamps: true });
 
 export default mongoose.model('User', userSchema);

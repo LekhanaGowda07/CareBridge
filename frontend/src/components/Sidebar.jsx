@@ -67,7 +67,7 @@ const Sidebar = () => {
                   <h4 style={{ margin: 0 }}>Patient Account</h4>
                 </div>
                 <div className="popover-body" style={{ fontSize: '0.85rem', display: 'flex', flexDirection: 'column', gap: '8px' }}>
-                  <div className="info-item"><strong>Email:</strong> {user.email || 'sarah.j@example.com'}</div>
+                  <div className="info-item"><strong>Email:</strong> {user.email}</div>
                   <div className="info-item"><strong>Member Since:</strong> May 2026</div>
                   <div className="info-item"><strong>Last Checkup:</strong> 2 days ago</div>
                   <button className="btn btn-outline btn-sm w-full mt-2" onClick={() => setShowProfileInfo(false)}>Close</button>

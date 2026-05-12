@@ -1,7 +1,6 @@
 import { useState, useEffect } from 'react';
 import { CheckCircle2, Clock, AlertCircle } from 'lucide-react';
 import { useAuth } from '../context/AuthContext';
-import { medications as mockMeds } from '../mockData';
 import './Medications.css';
 
 const Medications = () => {
@@ -16,18 +15,14 @@ const Medications = () => {
       fetch(`/api/medications/user/${user._id}`, { headers })
         .then(res => res.json())
         .then(data => {
-          if (Array.isArray(data) && data.length > 0) setMeds(data);
-          else setMeds(mockMeds);
+          if (Array.isArray(data)) setMeds(data);
           setLoading(false);
         })
         .catch(err => {
           console.error(err);
-          setMeds(mockMeds);
           setLoading(false);
         });
     } else {
-      // Fallback to mock data when no real user/token available
-      setMeds(mockMeds);
       setLoading(false);
     }
   }, [user, token]);

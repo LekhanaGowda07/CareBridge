@@ -34,7 +34,7 @@ app.use('/api/auth', authRoutes);
 app.use('/api/users', auth, userRoutes);
 app.use('/api/medications', auth, medicationRoutes);
 app.use('/api/symptoms', auth, symptomRoutes);
-app.use('/api/chat', chatRoutes);
+app.use('/api/chat', auth, (req, res, next) => { console.log('Chat API Hit:', req.method, req.url); next(); }, chatRoutes);
 
 // Serve frontend in production
 if (process.env.NODE_ENV === 'production') {

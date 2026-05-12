@@ -1,7 +1,6 @@
 import { useState, useEffect } from 'react';
 import { PlusCircle, Activity, AlertTriangle } from 'lucide-react';
 import { useAuth } from '../context/AuthContext';
-import { recentSymptoms as mockSymptoms } from '../mockData';
 import './Symptoms.css';
 
 const Symptoms = () => {
@@ -23,17 +22,14 @@ const Symptoms = () => {
       })
         .then(res => res.json())
         .then(data => {
-          if (Array.isArray(data) && data.length > 0) setSymptoms(data);
-          else setSymptoms(mockSymptoms);
+          if (Array.isArray(data)) setSymptoms(data);
           setLoading(false);
         })
         .catch(err => {
           console.error(err);
-          setSymptoms(mockSymptoms);
           setLoading(false);
         });
     } else {
-      setSymptoms(mockSymptoms);
       setLoading(false);
     }
   }, [user, token]);

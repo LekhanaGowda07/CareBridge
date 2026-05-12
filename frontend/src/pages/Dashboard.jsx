@@ -32,7 +32,12 @@ const Dashboard = () => {
   }, []);
 
   useEffect(() => {
-    if (user) setEditedUser({ ...user });
+    if (user) {
+      setEditedUser({ ...user });
+      if (user.vitals) {
+        setVitals(user.vitals);
+      }
+    }
   }, [user]);
 
   useEffect(() => {
@@ -49,12 +54,10 @@ const Dashboard = () => {
         .then(res => res.json())
         .then(data => {
           clearTimeout(medsTimeout);
-          if (Array.isArray(data) && data.length > 0) setMedications(data);
-          else setMedications(mockMeds);
+          if (Array.isArray(data)) setMedications(data);
         })
         .catch(() => {
           clearTimeout(medsTimeout);
-          setMedications(mockMeds);
         });
         
       const sympController = new AbortController();
@@ -67,12 +70,10 @@ const Dashboard = () => {
           .then(res => res.json())
           .then(data => {
             clearTimeout(sympTimeout);
-            if (Array.isArray(data) && data.length > 0) setRecentSymptoms(data);
-            else setRecentSymptoms(mockSymptoms);
+            if (Array.isArray(data)) setRecentSymptoms(data);
           })
           .catch(() => {
             clearTimeout(sympTimeout);
-            setRecentSymptoms(mockSymptoms);
           });
 
       return () => {
@@ -87,16 +88,35 @@ const Dashboard = () => {
     }
   }, [user, token]);
 
-  const handleSaveVitals = () => {
+  const handleSaveVitals = async () => {
+    if (!token || token === 'mock_token') {
+      setNotification({ title: "Demo Mode", message: "Vitals cannot be saved in demo mode.", type: "warning" });
+      return;
+    }
     setIsSaving(true);
-    setTimeout(() => {
-      setIsSaving(false);
-      setNotification({
-        title: "Vitals Updated",
-        message: "Your health data has been securely saved.",
-        type: "success"
+    try {
+      const res = await fetch(`/api/users/${user._id}/vitals`, {
+        method: 'PUT',
+        headers: { 
+          'Content-Type': 'application/json',
+          'Authorization': `Bearer ${token}`
+        },
+        body: JSON.stringify({ vitals })
       });
-    }, 1200);
+      if (res.ok) {
+        const updatedUser = await res.json();
+        updateUser(updatedUser);
+        setNotification({
+          title: "Vitals Updated",
+          message: "Your health data has been securely saved.",
+          type: "success"
+        });
+      }
+    } catch (err) {
+      console.error(err);
+    } finally {
+      setIsSaving(false);
+    }
   };
 
   const handleCallNurse = () => {
